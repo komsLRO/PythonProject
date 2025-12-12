@@ -14,7 +14,7 @@ from sympy.codegen.ast import none
 
 # ---------------- НАСТРОЙКИ ----------------
 
-TOKEN = "7974624776:AAESUpg1b2EB_l6VUbWPIsosCOzHG98wfUs"
+TOKEN = "797462477"
 DB_NAME = 'planner.db'
 EMB_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
