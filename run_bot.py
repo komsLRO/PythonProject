@@ -11,28 +11,16 @@ def find_bot_directory():
     # Сначала пробуем текущую директорию
     current_dir = os.getcwd()
     bot_dir = os.path.join(current_dir, 'tg_planer_aiogram')
-
     if os.path.exists(bot_dir):
         return bot_dir
 
     # Если не нашли, пробуем директорию скрипта
     script_dir = os.path.dirname(os.path.abspath(__file__))
     bot_dir = os.path.join(script_dir, 'tg_planer_aiogram')
-
     if os.path.exists(bot_dir):
         return bot_dir
 
-    # Если все еще не нашли, выводим диагностику
     print("Ошибка: Не удалось найти директорию tg_planer_aiogram!")
-    print(f"Текущая рабочая директория: {current_dir}")
-    print(f"Директория скрипта: {script_dir}")
-    print(f"Проверенные пути:")
-    print(f"  {os.path.join(current_dir, 'tg_planer_aiogram')}")
-    print(f"  {os.path.join(script_dir, 'tg_planer_aiogram')}")
-
-    if os.path.exists(current_dir):
-        print(f"Содержимое текущей директории: {os.listdir(current_dir)}")
-
     return None
 
 def main():

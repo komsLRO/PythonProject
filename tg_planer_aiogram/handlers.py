@@ -41,9 +41,6 @@ def register_handlers(dp: Dispatcher):
     # Диалог удаления всех задач
     dp.message.register(process_clear_confirmation, StateFilter(ClearAllStates.waiting_for_confirmation))
 
-    # Отмена диалога
-    dp.message.register(cancel_add, Command("cancel"))
-
 
 async def on_start(message: Message):
     await database.register_user(message.from_user.id, message.from_user.username)
@@ -158,7 +155,6 @@ async def on_add(message: Message, state: FSMContext):
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
         "✏️ <b>Шаг 1:</b> Введите <b>название задачи</b>\n\n"
         "💡 <i>Например: Встреча с клиентом, Сделать домашнее задание</i>\n\n"
-        "❌ <code>/cancel</code> - отменить добавление\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     )
     await state.set_state(AddTaskStates.waiting_for_title)
@@ -170,17 +166,21 @@ async def process_title(message: Message, state: FSMContext):
 
     if len(title) < 1:
         await message.answer(
-            "❌ <b>Ошибка!</b>\n\n"
-            "Название задачи не может быть пустым!\n\n"
-            "✏️ Введите название задачи:"
+            "❌ <b>Пустое название!</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "📝 Название задачи не может быть пустым!\n\n"
+            "✏️ <b>Введите название задачи:</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         )
         return
 
     if len(title) > 200:
         await message.answer(
-            "❌ <b>Ошибка!</b>\n\n"
-            f"Название слишком длинное! ({len(title)} символов, макс. 200)\n\n"
-            "✏️ Введите более короткое название:"
+            "❌ <b>Слишком длинное название!</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📏 Длина: {len(title)} символов (макс. 200)\n\n"
+            "✏️ <b>Введите более короткое название:</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         )
         return
 
@@ -196,7 +196,6 @@ async def process_title(message: Message, state: FSMContext):
         "• <code>25.12.2024 14:30</code> - Рождество\n"
         "• <code>01.01.2025 09:00</code> - Новый год\n"
         "• <code>15.03.2024 16:45</code> - Встреча\n\n"
-        "❌ <code>/cancel</code> - отменить добавление\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     )
     await state.set_state(AddTaskStates.waiting_for_datetime)
@@ -214,13 +213,16 @@ async def process_datetime(message: Message, state: FSMContext):
     parts = datetime_input.split()
     if len(parts) != 2:
         await message.answer(
-            "❌ <b>Неверный формат даты и времени!</b>\n\n"
-            "📝 <b>Правильный формат:</b> <code>DD.MM.YYYY HH:MM</code>\n\n"
+            "❌ <b>Неверный формат ввода!</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📝 Вы ввели: <code>{datetime_input}</code>\n\n"
+            "📋 <b>Ожидаемый формат:</b> <code>DD.MM.YYYY HH:MM</code>\n\n"
             "💡 <b>Примеры:</b>\n"
-            "• <code>25.12.2024 14:30</code>\n"
-            "• <code>01.01.2025 09:00</code>\n\n"
-            "🔄 Введите дату и время правильно:"
+            "• <code>25.12.2024 14:30</code> ✅\n"
+            "• <code>01.01.2025 09:00</code> ✅\n\n"
+            "🔄 <b>Повторите ввод в правильном формате:</b>"
         )
+        await state.set_state(AddTaskStates.waiting_for_datetime)
         return
 
     date_input, time_input = parts
@@ -229,13 +231,16 @@ async def process_datetime(message: Message, state: FSMContext):
     parsed = utils.parse_date_time(date_input, time_input)
     if parsed is None:
         await message.answer(
-            "❌ <b>Некорректная дата или время!</b>\n\n"
-            "📅 Проверьте формат: <code>DD.MM.YYYY HH:MM</code>\n\n"
+            "❌ <b>Некорректная дата или время!</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📝 Вы ввели: <code>{date_input} {time_input}</code>\n\n"
+            "📅 <b>Проверьте формат:</b> <code>DD.MM.YYYY HH:MM</code>\n\n"
             "💡 <b>Примеры корректных дат:</b>\n"
-            "• <code>25.12.2024 14:30</code>\n"
-            "• <code>01.01.2025 09:15</code>\n\n"
-            "🔄 Введите правильную дату и время:"
+            "• <code>25.12.2024 14:30</code> ✅\n"
+            "• <code>01.01.2025 09:15</code> ✅\n\n"
+            "🔄 <b>Введите правильную дату и время:</b>"
         )
+        await state.set_state(AddTaskStates.waiting_for_datetime)
         return
 
     date_str, time_str = parsed
@@ -243,13 +248,17 @@ async def process_datetime(message: Message, state: FSMContext):
     # Проверяем, что время не в прошлом
     if not utils.validate_datetime(date_str, time_str):
         await message.answer(
-            "⏰ <b>Нельзя добавить задачу на прошедшее время!</b>\n\n"
-            "📅 Выберите дату и время в будущем.\n\n"
-            "💡 <i>Текущее время будет проверено автоматически</i>\n\n"
-            "🔄 Введите дату и время в будущем:"
+            "⏰ <b>Ошибка: Прошедшее время!</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "❌ Нельзя добавить задачу на прошедшее время!\n\n"
+            f"📅 Вы ввели: <code>{date_str} {time_str}</code>\n"
+            f"📅 Текущее время: <code>{utils.current_date()} {utils.current_time()}</code>\n\n"
+            "💡 <b>Выберите дату и время в будущем</b>\n\n"
+            "📝 <b>Формат:</b> <code>DD.MM.YYYY HH:MM</code>\n\n"
+            "🔄 <b>Повторите ввод:</b>"
         )
-        await state.clear()
-        return
+        await state.set_state(AddTaskStates.waiting_for_datetime)
+        return  # НЕ очищаем состояние, даем возможность ввести заново
 
     # Создаем задачу
     vec = utils.make_embedding(title)
@@ -294,32 +303,32 @@ async def on_today(message: Message):
 
     if not tasks:
         await message.answer(
-            "📅 <b>Задачи на сегодня</b>\n"
+            "<b>Задачи на сегодня</b>\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-            "✅ <i>На сегодня задач нет! Отличный день для отдыха 🎉</i>\n\n"
-            "💡 <i>Используйте /add чтобы добавить задачу</i>"
+            "<i>На сегодня задач нет! Отличный день для отдыха</i>\n\n"
+            "<i>Используйте /add чтобы добавить задачу</i>"
         )
     else:
         formatted_date = utils.format_date_display(today)
         lines = [
-            f"📅 <b>Задачи на {formatted_date}</b>",
+            f"<b>Задачи на {formatted_date}</b>",
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         ]
 
         for i, (task_id, title, time_str, status) in enumerate(tasks, 1):
             if status == "done":
-                mark = "✅"
+                mark = "[ВЫПОЛНЕНО]"
                 emoji = "☑️"
             else:
-                mark = "⏳"
+                mark = "[НЕ ВЫПОЛНЕНО]"
                 emoji = "📝"
 
-            formatted_datetime = utils.format_datetime_display(today.strftime("%Y-%m-%d"), time_str)
+            formatted_datetime = utils.format_datetime_display(today, time_str)
             lines.append(f"{emoji} <b>{i}.</b> <code>{formatted_datetime}</code> - {title} {mark}")
 
         lines.extend([
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            f"💡 <i>Используйте /done N для выполнения задачи</i>"
+            f"<i>Используйте /done N для выполнения задачи</i>"
         ])
 
         await message.answer("\n".join(lines))
@@ -540,7 +549,14 @@ async def on_clear_all(message: Message, state: FSMContext):
 
 async def process_clear_confirmation(message: Message, state: FSMContext):
     """Обработка подтверждения удаления всех задач"""
-    confirmation = message.text.strip().upper()
+    confirmation = message.text.strip()
+
+    # Явная проверка на отмену
+    if confirmation.lower() in ["/cancel", "cancel", "отмена", "отменить"]:
+        await cancel_add(message, state)
+        return
+
+    confirmation = confirmation.upper()
 
     if confirmation == "ДА УДАЛИТЬ ВСЕ":
         # Получаем сохраненное количество задач
@@ -563,7 +579,7 @@ async def process_clear_confirmation(message: Message, state: FSMContext):
         # Очищаем состояние
         await state.clear()
 
-    elif confirmation in ["НЕТ", "NO", "CANCEL", "ОТМЕНА"]:
+    elif confirmation in ["НЕТ", "NO", "CANCEL", "ОТМЕНА", "НЕТ НЕ УДАЛЯТЬ", "ОТМЕНИТЬ"]:
         await message.answer(
             "✅ <b>Удаление отменено</b>\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
@@ -579,10 +595,11 @@ async def process_clear_confirmation(message: Message, state: FSMContext):
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
             "📝 <b>Доступные варианты:</b>\n\n"
             "✅ <b>Подтвердить:</b> <code>ДА УДАЛИТЬ ВСЕ</code>\n"
-            "❌ <b>Отменить:</b> <code>НЕТ</code> или <code>/cancel</code>\n\n"
+            "❌ <b>Отменить:</b> <code>НЕТ</code>, <code>ОТМЕНА</code> или <code>/cancel</code>\n\n"
             "🔄 Повторите ввод:\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         )
+        await state.set_state(ClearAllStates.waiting_for_confirmation)
 
 
 async def on_done(message: Message):
